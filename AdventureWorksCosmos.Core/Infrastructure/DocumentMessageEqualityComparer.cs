@@ -2,11 +2,9 @@
 
 namespace AdventureWorksCosmos.Core.Infrastructure
 {
-    public class DocumentMessageEqualityComparer 
-        : IEqualityComparer<IDocumentMessage>
+    public class DocumentMessageEqualityComparer  : IEqualityComparer<IDocumentMessage>
     {
-        public static readonly DocumentMessageEqualityComparer Instance 
-            = new DocumentMessageEqualityComparer();
+        public static readonly DocumentMessageEqualityComparer Instance  = new DocumentMessageEqualityComparer();
 
         public bool Equals(IDocumentMessage x, IDocumentMessage y)
         {

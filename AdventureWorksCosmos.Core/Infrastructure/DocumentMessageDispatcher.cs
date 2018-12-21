@@ -38,7 +38,7 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             return null;
         }
 
-        public async Task Dispatch(ProcessDocumentMessages command)
+        public async Task Dispatch(SagaCommand command)
         {
             var documentType = Type.GetType(command.DocumentType);
             var repository = GetRepository(documentType);
@@ -61,14 +61,10 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             }
         }
 
-        private static DomainEventDispatcherHandler GetHandler(
-            IDocumentMessage documentMessage)
+        private static DomainEventDispatcherHandler GetHandler(IDocumentMessage documentMessage)
         {
-            var genericDispatcherType = typeof(DomainEventDispatcherHandler<>)
-                .MakeGenericType(documentMessage.GetType());
-
-            return (DomainEventDispatcherHandler)
-                Activator.CreateInstance(genericDispatcherType);
+            var genericDispatcherType = typeof(DomainEventDispatcherHandler<>).MakeGenericType(documentMessage.GetType());
+            return (DomainEventDispatcherHandler)Activator.CreateInstance(genericDispatcherType);
         }
 
         private DocumentDbRepo GetRepository(Type aggregateType)
@@ -86,8 +82,7 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             public abstract Task Update(DocumentBase document);
         }
 
-        private class DocumentDbRepo<T> : DocumentDbRepo
-            where T : DocumentBase
+        private class DocumentDbRepo<T> : DocumentDbRepo where T : DocumentBase
         {
             private readonly IDocumentDBRepository<T> _repository;
 
@@ -98,26 +93,22 @@ namespace AdventureWorksCosmos.Core.Infrastructure
 
             public override async Task<DocumentBase> FindById(Guid id)
             {
-                var root = await _repository.GetItemAsync(id);
-
+                var root = await _repository.LoadAsync(id);
                 return root;
             }
 
             public override Task Update(DocumentBase document)
             {
-                return _repository.UpdateItemAsync((T)document);
+                return _repository.UpdateAsync((T)document);
             }
         }
 
         private abstract class DomainEventDispatcherHandler
         {
-            public abstract Task Handle(
-                IDocumentMessage documentMessage, 
-                ServiceFactory factory);
+            public abstract Task Handle(IDocumentMessage documentMessage, ServiceFactory factory);
         }
 
-        private class DomainEventDispatcherHandler<T> : DomainEventDispatcherHandler
-            where T : IDocumentMessage
+        private class DomainEventDispatcherHandler<T> : DomainEventDispatcherHandler where T : IDocumentMessage
         {
             public override Task Handle(IDocumentMessage documentMessage, ServiceFactory factory)
             {

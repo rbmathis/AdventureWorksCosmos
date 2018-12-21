@@ -16,11 +16,11 @@ namespace AdventureWorksCosmos.Core.Models.Orders
         Completed = 5
     }
 
-    public class OrderRequest : DocumentBase
+    public class Order : DocumentBase
     {
-        public OrderRequest() { }
+        public Order() { }
 
-        public OrderRequest(ShoppingCart cart)
+        public Order(ShoppingCart cart)
         {
             Id = Guid.NewGuid();
             Customer = new Customer
@@ -38,12 +38,12 @@ namespace AdventureWorksCosmos.Core.Models.Orders
             }).ToList();
             Status = Status.New;
 
-            Send(new OrderCreated
+            Send(new OrderCreatedMessage
             {
                 Id = Guid.NewGuid(),
                 OrderId = Id,
                 LineItems = Items
-                    .Select(item => new OrderCreated.LineItem
+                    .Select(item => new OrderCreatedMessage.LineItem
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity
@@ -72,7 +72,7 @@ namespace AdventureWorksCosmos.Core.Models.Orders
                 return CommandResult.Fail("Cannot approve a rejected order.");
 
             Status = Status.Approved;
-            Send(new OrderApproved
+            Send(new OrderApprovedMessage
             {
                 Id = Guid.NewGuid(),
                 OrderId = Id
@@ -93,14 +93,14 @@ namespace AdventureWorksCosmos.Core.Models.Orders
                 throw new InvalidOperationException("Cannot reject a completed order.");
 
             Status = Status.Rejected;
-            Send(new OrderRejected
+            Send(new OrderRejectedMessage
             {
                 Id = Guid.NewGuid(),
                 OrderId = Id
             });
         }
 
-        public void Handle(CancelOrderRequest message)
+        public void Handle(CancelOrderRequestMessage message)
         {
             Process(message, m =>
             {
@@ -111,7 +111,7 @@ namespace AdventureWorksCosmos.Core.Models.Orders
             });
         }
 
-        public void Handle(OrderFulfillmentSuccessful message)
+        public void Handle(OrderFulfillmentSuccessfulMessage message)
         {
             Process(message, m =>
             {

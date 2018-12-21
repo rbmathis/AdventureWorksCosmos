@@ -15,20 +15,20 @@ namespace AdventureWorksCosmos.Core.Models.Orders
 
         public class Handler : IRequestHandler<Request>
         {
-            private readonly IDocumentDBRepository<OrderRequest> _orderRepository;
+            private readonly IDocumentDBRepository<Order> _orderRepository;
 
-            public Handler(IDocumentDBRepository<OrderRequest> orderRepository)
+            public Handler(IDocumentDBRepository<Order> orderRepository)
             {
                 _orderRepository = orderRepository;
             }
 
             public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
             {
-                var orderRequest = await _orderRepository.GetItemAsync(request.Id);
+                var orderRequest = await _orderRepository.LoadAsync(request.Id);
 
                 orderRequest.Approve();
 
-                await _orderRepository.UpdateItemAsync(orderRequest);
+                await _orderRepository.UpdateAsync(orderRequest);
 
                 return Unit.Value;
             }

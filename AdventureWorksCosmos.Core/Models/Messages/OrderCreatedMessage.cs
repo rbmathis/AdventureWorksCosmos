@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AdventureWorksCosmos.Core.Models.Orders
 {
-    public class OrderCreated : IDocumentMessage
+    public class OrderCreatedMessage : IDocumentMessage
     {
         public Guid Id { get; set; }
         public Guid OrderId { get; set; }

@@ -24,21 +24,16 @@
 
     public class CommandResult<T> : CommandResult
     {
-        private CommandResult(string reason) : base(reason)
-        { }
+        private CommandResult(string reason) : base(reason){ }
 
-        private CommandResult(T payload)
-            => Payload = payload;
+        private CommandResult(T payload) => Payload = payload;
 
         public T Payload { get; }
 
-        public new static CommandResult<T> Fail(string reason)
-            => new CommandResult<T>(reason);
+        public new static CommandResult<T> Fail(string reason) => new CommandResult<T>(reason);
 
-        public static CommandResult<T> Success(T payload)
-            => new CommandResult<T>(payload);
+        public static new CommandResult<T> Success(T payload) => new CommandResult<T>(payload);
 
-        public static implicit operator bool(CommandResult<T> result)
-            => result.IsSuccess;
+        public static implicit operator bool(CommandResult<T> result) => result.IsSuccess;
     }
 }

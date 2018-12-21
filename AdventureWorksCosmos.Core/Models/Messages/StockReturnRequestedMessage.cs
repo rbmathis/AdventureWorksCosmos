@@ -2,10 +2,10 @@
 
 namespace AdventureWorksCosmos.Core.Models.Inventory
 {
-    public class StockRequestDenied : IDocumentMessage
+    public class StockReturnRequestedMessage : IDocumentMessage
     {
         public Guid Id { get; set; }
-        public Guid OrderFulfillmentId { get; set; }
         public int ProductId { get; set; }
+        public int AmountToReturn { get; set; }
     }
 }

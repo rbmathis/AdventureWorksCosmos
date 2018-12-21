@@ -26,7 +26,7 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             CreateCollectionIfNotExistsAsync().Wait();
         }
 
-        public async Task<T> GetItemAsync(Guid id)
+        public async Task<T> LoadAsync(Guid id)
         {
             try
             {
@@ -53,12 +53,10 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             }
         }
 
-        public async Task<IEnumerable<T>> GetItemsAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> ListAsync(Expression<Func<T, bool>> predicate)
         {
-            IDocumentQuery<T> query = _client.CreateDocumentQuery<T>(
-                    UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
-                    new FeedOptions { MaxItemCount = -1 }).Where(predicate)
-                .AsDocumentQuery();
+            IDocumentQuery<T> query = _client
+                .CreateDocumentQuery<T>(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),new FeedOptions { MaxItemCount = -1 }).Where(predicate).AsDocumentQuery();
 
             List<T> results = new List<T>();
             while (query.HasMoreResults)
@@ -70,14 +68,14 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             return results;
         }
 
-        public async Task<Document> CreateItemAsync(T item)
+        public async Task<Document> CreateAsync(T item)
         {
             _unitOfWork.Register(item);
 
             return await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId), item);
         }
 
-        public async Task<Document> UpdateItemAsync(T item)
+        public async Task<Document> UpdateAsync(T item)
         {
             var ac = new AccessCondition
             {
@@ -91,7 +89,7 @@ namespace AdventureWorksCosmos.Core.Infrastructure
                 new RequestOptions { AccessCondition = ac });
         }
 
-        public async Task DeleteItemAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             await _client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id.ToString()));
         }

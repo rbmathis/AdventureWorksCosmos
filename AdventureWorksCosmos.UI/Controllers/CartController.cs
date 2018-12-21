@@ -14,10 +14,10 @@ namespace AdventureWorksCosmos.UI
     public class CartController : Controller
     {
         private readonly AdventureWorks2016Context _db;
-        private readonly IDocumentDBRepository<OrderRequest> _docDbRepository;
+        private readonly IDocumentDBRepository<Order> _docDbRepository;
         private readonly IMediator _mediator;
 
-        public CartController(AdventureWorks2016Context db, IDocumentDBRepository<OrderRequest> docDbRepository, IMediator mediator)
+        public CartController(AdventureWorks2016Context db, IDocumentDBRepository<Order> docDbRepository, IMediator mediator)
         {
             _db = db;
             _docDbRepository = docDbRepository;
@@ -49,7 +49,6 @@ namespace AdventureWorksCosmos.UI
             return RedirectToPage("/Orders/Show", new {id = response.OrderId});
         }
 
-        private ShoppingCart GetCart() 
-            => HttpContext.Session.Get<ShoppingCart>("Cart") ?? new ShoppingCart();
+        private ShoppingCart GetCart() => HttpContext.Session.Get<ShoppingCart>("Cart") ?? new ShoppingCart();
     }
 } 

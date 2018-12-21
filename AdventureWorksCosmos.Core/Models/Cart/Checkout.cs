@@ -21,16 +21,16 @@ namespace AdventureWorksCosmos.Core.Models.Cart
 
         public class Handler : IRequestHandler<Request, Response>
         {
-            private readonly IDocumentDBRepository<OrderRequest> _repository;
+            private readonly IDocumentDBRepository<Order> _repository;
 
-            public Handler(IDocumentDBRepository<OrderRequest> repository) 
+            public Handler(IDocumentDBRepository<Order> repository) 
                 => _repository = repository;
 
             public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
             {
-                var orderRequest = new OrderRequest(request.Cart);
+                var orderRequest = new Order(request.Cart);
 
-                await _repository.CreateItemAsync(orderRequest);
+                await _repository.CreateAsync(orderRequest);
 
                 request.Cart.Items.Clear();
 

@@ -6,16 +6,13 @@ using Microsoft.Azure.Documents;
 
 namespace AdventureWorksCosmos.Core.Infrastructure
 {
-    public class RetryUnitOfWorkBehavior<TRequest, TResponse> 
-        : IPipelineBehavior<TRequest, TResponse>
+    public class RetryUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public RetryUnitOfWorkBehavior(IUnitOfWork unitOfWork) 
-            => _unitOfWork = unitOfWork;
+        public RetryUnitOfWorkBehavior(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
 
-        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken,
-            RequestHandlerDelegate<TResponse> next)
+        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
             var retryCount = 0;
 

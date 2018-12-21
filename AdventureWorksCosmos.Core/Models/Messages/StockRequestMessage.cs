@@ -2,7 +2,7 @@
 
 namespace AdventureWorksCosmos.Core.Models.Inventory
 {
-    public class StockRequest : IDocumentMessage
+    public class StockRequestMessage : IDocumentMessage
     {
         public Guid Id { get; set; }
         public int ProductId { get; set; }

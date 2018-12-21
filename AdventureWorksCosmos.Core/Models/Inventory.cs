@@ -2,20 +2,20 @@
 
 namespace AdventureWorksCosmos.Core.Models.Inventory
 {
-    public class Stock : DocumentBase
+    public class Inventory : DocumentBase
     {
         public int QuantityAvailable { get; set; }
 
         public int ProductId { get; set; }
 
-        public void Handle(StockRequest message)
+        public void Handle(StockRequestMessage message)
         {
             Process(message, e =>
             {
                 if (QuantityAvailable >= message.AmountRequested)
                 {
                     QuantityAvailable -= e.AmountRequested;
-                    Send(new StockRequestConfirmed
+                    Send(new StockRequestConfirmedMessage
                     {
                         Id = Guid.NewGuid(),
                         OrderFulfillmentId = e.OrderFulfillmentId,
@@ -24,7 +24,7 @@ namespace AdventureWorksCosmos.Core.Models.Inventory
                 }
                 else
                 {
-                    Send(new StockRequestDenied
+                    Send(new StockRequestDeniedMessage
                     {
                         Id = Guid.NewGuid(),
                         OrderFulfillmentId = e.OrderFulfillmentId,
@@ -34,7 +34,6 @@ namespace AdventureWorksCosmos.Core.Models.Inventory
             });
         }
 
-        public void Handle(StockReturnRequested message) 
-            => Process(message, e => QuantityAvailable += e.AmountToReturn);
+        public void Handle(StockReturnRequestedMessage message)  => Process(message, e => QuantityAvailable += e.AmountToReturn);
     }
 }

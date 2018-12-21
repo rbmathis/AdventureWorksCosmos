@@ -6,7 +6,7 @@ using AdventureWorksCosmos.Core.Models.Orders;
 
 namespace AdventureWorksCosmos.Core.Models.Fulfillments
 {
-    public class OrderFulfillment : DocumentBase
+    public class OrderSaga : DocumentBase
     {
         public Guid OrderId { get; set; }
         public bool IsCancelled { get; set; }
@@ -23,24 +23,23 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
             public bool StockReturnRequested { get; set; }
         }
         
-        public void Handle(OrderCreated message)
+        public void Handle(OrderCreatedMessage message)
         {
             Process(message, m =>
             {
                 if (IsCancelled)
                     return;
 
-                LineItems = m.LineItems
-                    .Select(li => new LineItem
-                    {
-                        ProductId = li.ProductId,
-                        AmountRequested = li.Quantity
-                    })
+                LineItems = m.LineItems.Select(li => new LineItem
+                            {
+                                ProductId = li.ProductId,
+                                AmountRequested = li.Quantity
+                            })
                     .ToList();
 
                 foreach (var lineItem in LineItems)
                 {
-                    Send(new StockRequest
+                    Send(new StockRequestMessage
                     {
                         Id = Guid.NewGuid(),
                         ProductId = lineItem.ProductId,
@@ -51,7 +50,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
             });
         }
 
-        public void Handle(OrderApproved message)
+        public void Handle(OrderApprovedMessage message)
         {
             Process(message, m =>
             {
@@ -68,7 +67,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
             });
         }
 
-        public void Handle(StockRequestConfirmed message)
+        public void Handle(StockRequestConfirmedMessage message)
         {
             Process(message, m =>
             {
@@ -86,7 +85,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
             });
         }
 
-        public void Handle(StockRequestDenied message)
+        public void Handle(StockRequestDeniedMessage message)
         {
             Process(message, m =>
             {
@@ -94,7 +93,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
             });
         }
 
-        public void Handle(OrderRejected message)
+        public void Handle(OrderRejectedMessage message)
         {
             Process(message, m =>
             {
@@ -111,7 +110,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
 
             if (LineItems.All(li => li.StockConfirmed) && OrderApproved)
             {
-                Send(new OrderFulfillmentSuccessful
+                Send(new OrderFulfillmentSuccessfulMessage
                 {
                     Id = Guid.NewGuid(),
                     OrderId = OrderId
@@ -131,7 +130,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
             if (!CancelOrderRequested && !OrderRejected)
             {
                 CancelOrderRequested = true;
-                Send(new CancelOrderRequest
+                Send(new CancelOrderRequestMessage
                 {
                     Id = Guid.NewGuid(),
                     OrderId = OrderId
@@ -150,7 +149,7 @@ namespace AdventureWorksCosmos.Core.Models.Fulfillments
                 return;
 
             lineItem.StockReturnRequested = true;
-            Send(new StockReturnRequested
+            Send(new StockReturnRequestedMessage
             {
                 Id = Guid.NewGuid(),
                 ProductId = lineItem.ProductId,

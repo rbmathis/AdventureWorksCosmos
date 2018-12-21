@@ -13,10 +13,8 @@ namespace AdventureWorksCosmos.Core
         [JsonProperty(PropertyName = "_etag")]
         public string ETag { get; set; }
 
-        private HashSet<IDocumentMessage> _outbox 
-            = new HashSet<IDocumentMessage>(DocumentMessageEqualityComparer.Instance);
-        private HashSet<IDocumentMessage> _inbox
-            = new HashSet<IDocumentMessage>(DocumentMessageEqualityComparer.Instance);
+        private HashSet<IDocumentMessage> _outbox  = new HashSet<IDocumentMessage>(DocumentMessageEqualityComparer.Instance);
+        private HashSet<IDocumentMessage> _inbox = new HashSet<IDocumentMessage>(DocumentMessageEqualityComparer.Instance);
 
         public IEnumerable<IDocumentMessage> Outbox
         {
@@ -42,10 +40,7 @@ namespace AdventureWorksCosmos.Core
             _outbox.Add(documentMessage);
         }
 
-        protected void Process<TDocumentMessage>(
-            TDocumentMessage documentMessage, 
-            Action<TDocumentMessage> action)
-            where TDocumentMessage : IDocumentMessage
+        protected void Process<TDocumentMessage>(TDocumentMessage documentMessage, Action<TDocumentMessage> action) where TDocumentMessage : IDocumentMessage
         {
             if (_inbox == null)
                 _inbox = new HashSet<IDocumentMessage>(DocumentMessageEqualityComparer.Instance);
@@ -58,8 +53,7 @@ namespace AdventureWorksCosmos.Core
             _inbox.Add(documentMessage);
         }
 
-        public void ProcessDocumentMessage(
-            IDocumentMessage documentMessage)
+        public void ProcessDocumentMessage(IDocumentMessage documentMessage)
         {
             _outbox?.Remove(documentMessage);
         }

@@ -2,7 +2,7 @@
 
 namespace AdventureWorksCosmos.Core.Models.Orders
 {
-    public class OrderRejected : IDocumentMessage
+    public class CancelOrderRequestMessage : IDocumentMessage
     {
         public Guid Id { get; set; }
         public Guid OrderId { get; set; }

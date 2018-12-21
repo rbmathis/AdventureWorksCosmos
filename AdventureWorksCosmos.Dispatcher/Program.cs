@@ -69,17 +69,16 @@ namespace AdventureWorksCosmos.Dispatcher
             endpointConfiguration.EnableInstallers();
             endpointConfiguration.UsePersistence<InMemoryPersistence>();
 
-            Endpoint = await NServiceBus.Endpoint.Start(endpointConfiguration)
-                .ConfigureAwait(false);
+            Endpoint = await NServiceBus.Endpoint.Start(endpointConfiguration).ConfigureAwait(false);
 
             var builders = new[]
             {
-                CreateBuilder<OrderRequest>(client),
-                CreateBuilder<OrderFulfillment>(client),
-                CreateBuilder<Stock>(client),
+                CreateBuilder<Order>(client),
+                CreateBuilder<OrderSaga>(client),
+                CreateBuilder<Inventory>(client),
             };
 
-            var databases = new[] {nameof(OrderRequest), nameof(OrderFulfillment), nameof(Stock)};
+            var databases = new[] {nameof(Order), nameof(OrderSaga), nameof(Inventory)};
             foreach (var databaseId in databases)
             {
                 await CreateDatabaseIfNotExistsAsync(client, databaseId);
@@ -98,8 +97,7 @@ namespace AdventureWorksCosmos.Dispatcher
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
 
-            await Endpoint.Stop()
-                .ConfigureAwait(false);
+            await Endpoint.Stop().ConfigureAwait(false);
 
             foreach (var processor in processors)
             {
@@ -107,8 +105,7 @@ namespace AdventureWorksCosmos.Dispatcher
             }
         }
 
-        private static ChangeFeedProcessorBuilder CreateBuilder<T>(DocumentClient client) 
-            where T : DocumentBase
+        private static ChangeFeedProcessorBuilder CreateBuilder<T>(DocumentClient client) where T : DocumentBase
         {
             var builder = new ChangeFeedProcessorBuilder();
             var uri = new Uri(CosmosUrl);

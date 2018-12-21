@@ -12,8 +12,7 @@ namespace AdventureWorksCosmos.Core.Infrastructure
         private readonly IDocumentMessageDispatcher _dispatcher;
         private readonly IOfflineDispatcher _offlineDispatcher;
 
-        private readonly ISet<DocumentBase> _identityMap 
-            = new HashSet<DocumentBase>(DocumentBaseEqualityComparer.Instance);
+        private readonly ISet<DocumentBase> _identityMap = new HashSet<DocumentBase>(DocumentBaseEqualityComparer.Instance);
 
         public UnitOfWork(IDocumentMessageDispatcher dispatcher, IOfflineDispatcher offlineDispatcher)
         {
@@ -46,13 +45,9 @@ namespace AdventureWorksCosmos.Core.Infrastructure
         {
             var toSkip = new HashSet<DocumentBase>(DocumentBaseEqualityComparer.Instance);
 
-            while (_identityMap
-                    .Except(toSkip, DocumentBaseEqualityComparer.Instance)
-                .Any(a => a.Outbox.Any()))
+            while (_identityMap.Except(toSkip, DocumentBaseEqualityComparer.Instance).Any(a => a.Outbox.Any()))
             {
-                var document = _identityMap
-                    .Except(toSkip, DocumentBaseEqualityComparer.Instance)
-                    .FirstOrDefault(a => a.Outbox.Any());
+                var document = _identityMap.Except(toSkip, DocumentBaseEqualityComparer.Instance).FirstOrDefault(a => a.Outbox.Any());
 
                 if (document == null)
                     continue;

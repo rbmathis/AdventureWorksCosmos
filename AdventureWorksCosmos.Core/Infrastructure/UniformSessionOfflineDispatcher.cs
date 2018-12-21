@@ -13,6 +13,6 @@ namespace AdventureWorksCosmos.Core.Infrastructure
             => _uniformSession = uniformSession;
 
         public async Task DispatchOffline(DocumentBase document)
-            => await _uniformSession.Send(ProcessDocumentMessages.New(document));
+            => await _uniformSession.Send(SagaCommand.New(document));
     }
 }
