@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using AdventureWorksCosmos.Core;
@@ -13,24 +14,32 @@ using Microsoft.Azure.Documents.ChangeFeedProcessor;
 using Microsoft.Azure.Documents.ChangeFeedProcessor.DataAccess;
 using Microsoft.Azure.Documents.ChangeFeedProcessor.PartitionManagement;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using NServiceBus;
 using StructureMap;
 
 namespace AdventureWorksCosmos.Dispatcher
 {
-    class Program
+    public class Program
     {
-        private const string HostName = "AdventureWorksCosmos.Dispatcher";
-        private static readonly string CosmosUrl = "https://localhost:8081/";
-        private static readonly string CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+		private static string HostName { get; set; }
+		private static string CosmosUrl { get; set; }
+		private static string CosmosKey { get; set; }
 
-        public static Container Container { get; private set; }
+		public static Container Container { get; private set; }
         public static IEndpointInstance Endpoint { get; private set; }
 
         static async Task Main()
         {
-            var client = new DocumentClient(new Uri(CosmosUrl), CosmosKey, new JsonSerializerSettings
+
+			var config = new ConfigurationBuilder().AddJsonFile("private.json");
+			var _config = config.Build();
+			HostName = _config["Dispatcher:HostName"];
+			CosmosUrl = _config["Dispatcher:CosmosUrl"];
+			CosmosKey = _config["Dispatcher:CosmosKey"];
+
+			var client = new DocumentClient(new Uri(CosmosUrl), CosmosKey, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Auto
             });
@@ -58,7 +67,6 @@ namespace AdventureWorksCosmos.Dispatcher
             });
 
             var endpointConfiguration = new EndpointConfiguration(HostName);
-
             endpointConfiguration.UseContainer<StructureMapBuilder>(customizations => customizations.ExistingContainer(Container));
             endpointConfiguration.EnableUniformSession();
 

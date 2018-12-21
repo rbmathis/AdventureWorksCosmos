@@ -21,7 +21,12 @@ namespace AdventureWorksCosmos.UI
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
+				.ConfigureAppConfiguration((hostingContext, config) =>
+				{
+					config.SetBasePath(Directory.GetCurrentDirectory());
+					config.AddJsonFile("private.json", optional: false, reloadOnChange: true);
+				})
+				.UseStartup<Startup>()
                 .Build();
     }
 }

@@ -2,32 +2,36 @@
 using System.Threading.Tasks;
 using AdventureWorksCosmos.Core.Infrastructure;
 using AdventureWorksCosmos.Core.Models.Orders;
+using NServiceBus.Logging;
 
 namespace AdventureWorksCosmos.Core.Models.Fulfillments
 {
     public class OrderApprovedHandler : IDocumentMessageHandler<OrderApprovedMessage>
     {
-        private readonly IDocumentDBRepository<OrderSaga> _repository;
+		static ILog log = LogManager.GetLogger<CancelOrderRequestHandler>();
+		private readonly IDocumentDBRepository<OrderSaga> _repository;
 
         public OrderApprovedHandler(IDocumentDBRepository<OrderSaga> repository) => _repository = repository;
 
         public async Task Handle(OrderApprovedMessage message)
         {
-            var orderFulfillment = (await _repository.ListAsync(s => s.OrderId == message.OrderId)).FirstOrDefault();
+			log.Info($"Handling OrderApprovedMessage for : {message.OrderId}");
 
-            if (orderFulfillment == null)
+			var orderSaga = (await _repository.ListAsync(s => s.OrderId == message.OrderId)).FirstOrDefault();
+
+            if (orderSaga == null)
             {
-                orderFulfillment = new OrderSaga
+                orderSaga = new OrderSaga
                 {
                     OrderId = message.OrderId
                 };
 
-                await _repository.CreateAsync(orderFulfillment);
+                await _repository.CreateAsync(orderSaga);
             }
 
-            orderFulfillment.Handle(message);
+            orderSaga.Handle(message);
 
-            await _repository.UpdateAsync(orderFulfillment);
+            await _repository.UpdateAsync(orderSaga);
 
         }
     }

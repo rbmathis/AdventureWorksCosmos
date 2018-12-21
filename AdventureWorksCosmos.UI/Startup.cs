@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AdventureWorksCosmos.Core;
 using AdventureWorksCosmos.Core.Infrastructure;
 using AdventureWorksCosmos.Products.Models;
@@ -6,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -17,10 +19,14 @@ namespace AdventureWorksCosmos.UI
 {
     public class Startup
     {
-        private const string CosmosUrl = "https://localhost:8081/";
-        private const string CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+		//private const string CosmosUrl = "https://localhost:8081/";
+		//private const string CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
 
-        public Startup(IConfiguration configuration)
+		private static string CosmosUrl { get; set; }
+		private static string CosmosKey { get; set; }
+
+
+		public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
@@ -32,7 +38,10 @@ namespace AdventureWorksCosmos.UI
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+			CosmosUrl = Configuration["CosmosUrl"];
+			CosmosKey = Configuration["CosmosKey"];
+
+			services.AddMvc();
 
             services.AddDistributedMemoryCache();
 
@@ -59,19 +68,18 @@ namespace AdventureWorksCosmos.UI
                 cfg.For<DocumentClient>().Use(client);
             });
 
-            var endpointConfiguration = new EndpointConfiguration("AdventureWorksCosmos.UI");
-            endpointConfiguration.UseContainer<StructureMapBuilder>(c => c.ExistingContainer(container));
+            var endpointConfiguration = new EndpointConfiguration(Configuration["NServiceBusEndpointName"]);
+
+			endpointConfiguration.UseContainer<StructureMapBuilder>(c => c.ExistingContainer(container));
 
             var transport = endpointConfiguration.UseTransport<RabbitMQTransport>();
             transport.UseConventionalRoutingTopology();
-            transport.ConnectionString("host=localhost");
+            transport.ConnectionString(Configuration["RabbitMQConnectionString"]);
             endpointConfiguration.SendOnly();
             endpointConfiguration.EnableUniformSession();
 
             var routing = transport.Routing();
-            routing.RouteToEndpoint(
-                assembly: typeof(IDocumentMessage).Assembly,
-                destination: "AdventureWorksCosmos.Dispatcher");
+            routing.RouteToEndpoint(assembly: typeof(IDocumentMessage).Assembly, destination: "AdventureWorksCosmos.Dispatcher");
 
 
             services.AddMediatR(typeof(Startup), typeof(IDocumentMessage));
@@ -83,9 +91,10 @@ namespace AdventureWorksCosmos.UI
                 options.Cookie.HttpOnly = true;
             });
 
-            services.AddDbContext<AdventureWorks2016Context>();
 
-            container.Populate(services);
+			services.AddDbContext<AdventureWorks2016Context>(options => options.UseSqlServer(Configuration.GetConnectionString("AdventureWorks2016")));
+
+			container.Populate(services);
 
             Endpoint = NServiceBus.Endpoint.Start(endpointConfiguration).GetAwaiter().GetResult();
 
